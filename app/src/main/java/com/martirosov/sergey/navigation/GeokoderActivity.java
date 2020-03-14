@@ -1,14 +1,13 @@
 package com.martirosov.sergey.navigation;
 
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.widget.EditText;
-import android.widget.Toast;
+
+import androidx.appcompat.app.AppCompatActivity;
 
 public class GeokoderActivity extends AppCompatActivity {
     YandexResponse yandexResponse;
@@ -55,7 +54,7 @@ public class GeokoderActivity extends AppCompatActivity {
     }
 
     public void startYandexMapRoute(String s) {
-        Uri uri = Uri.parse("yandexmaps://maps.yandex.ru/?ll=" + s + "&z=12");
+        Uri uri = Uri.parse("yandexmaps://maps.yandex.ru/?rtext=55.492914,37.300647~" + s.split(",")[1] + "," + s.split(",")[0] + "&rtt=mt");
         Intent intent = new Intent(Intent.ACTION_VIEW, uri);
         startActivity(intent);
     }

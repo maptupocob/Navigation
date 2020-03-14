@@ -2,22 +2,17 @@ package com.martirosov.sergey.navigation;
 
 import android.content.Context;
 import android.os.AsyncTask;
-import android.util.Log;
 import android.widget.Toast;
 
 import java.io.IOException;
 
-import okhttp3.HttpUrl;
-import okhttp3.Interceptor;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
 import retrofit2.Call;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 public class MyCustomTask extends AsyncTask<String, String, String> {
-    private OkHttpClient client = new OkHttpClient.Builder().build();
+
     private Context context;
     private YandexResponse yandexResponse;
     private Retrofit retrofit;
@@ -35,7 +30,6 @@ public class MyCustomTask extends AsyncTask<String, String, String> {
         retrofit = new Retrofit.Builder()
                 .baseUrl("https://geocode-maps.yandex.ru/")
                 .addConverterFactory(GsonConverterFactory.create())
-                .client(client)
                 .build();
         YandexResponseMap yandexResponseMap = retrofit.create(YandexResponseMap.class);
         for (String s : strings) {
@@ -65,7 +59,7 @@ public class MyCustomTask extends AsyncTask<String, String, String> {
     @Override
     protected void onPostExecute(String s) {
         Toast.makeText(context, s, Toast.LENGTH_SHORT).show();
-        ((GeokoderActivity)context).startYandexMap(s.replace(" ", ","));
+        ((GeokoderActivity) context).startYandexMapRoute(s.replace(" ", ","));
         super.onPostExecute(s);
     }
 
