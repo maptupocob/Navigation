@@ -2,7 +2,6 @@ package com.martirosov.sergey.navigation;
 
 import android.content.Context;
 import android.os.AsyncTask;
-import android.widget.Toast;
 
 import java.io.IOException;
 
@@ -26,7 +25,7 @@ public class MyCustomTask extends AsyncTask<String, String, String> {
 
     @Override
     protected String doInBackground(String... strings) {
-        String pos=null;
+        String pos = null;
         retrofit = new Retrofit.Builder()
                 .baseUrl("https://geocode-maps.yandex.ru/")
                 .addConverterFactory(GsonConverterFactory.create())
@@ -41,8 +40,6 @@ public class MyCustomTask extends AsyncTask<String, String, String> {
                     publishProgress(response.message());
                 }
                 yandexResponse = response.body();
-                 pos = yandexResponse.getGeoObject(0).getPos();
-                 //. getName();
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -52,14 +49,15 @@ public class MyCustomTask extends AsyncTask<String, String, String> {
 
     @Override
     protected void onProgressUpdate(String... values) {
-        Toast.makeText(context, values[0], Toast.LENGTH_SHORT).show();
+//        Toast.makeText(context, values[0], Toast.LENGTH_SHORT).show();
         super.onProgressUpdate(values);
     }
 
     @Override
     protected void onPostExecute(String s) {
-        Toast.makeText(context, s, Toast.LENGTH_SHORT).show();
-        ((GeokoderActivity) context).startYandexMapRoute(s.replace(" ", ","));
+//        Toast.makeText(context, s, Toast.LENGTH_SHORT).show();
+        ((GeokoderActivity) context).showSearchResults(yandexResponse);
+//        ((GeokoderActivity) context).startYandexNavi("55.492914 37.300647", s);
         super.onPostExecute(s);
     }
 

@@ -16,17 +16,8 @@ public class YandexResponse {
         }
     }
 
-    private class GeoObjectCollection {
-        private MetaDataProperty metaDataProperty;
-        private List<FeatureMember> featureMember;
-
-        public MetaDataProperty getMetaDataProperty() {
-            return metaDataProperty;
-        }
-
-        public List<FeatureMember> getFeatureMember() {
-            return featureMember;
-        }
+    public List<FeatureMember> getFeatureMember() {
+        return response.getGeoObjectCollection().getFeatureMembers();
     }
 
 
@@ -41,23 +32,22 @@ public class YandexResponse {
         int results;
     }
 
-    private class FeatureMember{
-        @SerializedName("GeoObject")
-        private GeoObject geoObject;
-
-        public GeoObject getGeoObject() {
-            return geoObject;
-        }
-    }
-
-
-
-
-    public List<FeatureMember> getFeatureMember() {
-        return response.getGeoObjectCollection().getFeatureMember();
-    }
     public GeoObject getGeoObject(int index){
-        return response.geoObjectCollection.getFeatureMember().get(index).getGeoObject();
+        return response.geoObjectCollection.getFeatureMembers().get(index).getGeoObject();
+    }
+
+    private class GeoObjectCollection {
+        private MetaDataProperty metaDataProperty;
+        @SerializedName("featureMember")
+        private List<FeatureMember> featureMembers;
+
+        public MetaDataProperty getMetaDataProperty() {
+            return metaDataProperty;
+        }
+
+        public List<FeatureMember> getFeatureMembers() {
+            return featureMembers;
+        }
     }
 
 
