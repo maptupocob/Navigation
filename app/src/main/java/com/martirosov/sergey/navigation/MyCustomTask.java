@@ -3,6 +3,9 @@ package com.martirosov.sergey.navigation;
 import android.content.Context;
 import android.os.AsyncTask;
 
+import com.martirosov.sergey.navigation.model.YandexResponse;
+import com.martirosov.sergey.navigation.model.YandexResponseMap;
+
 import java.io.IOException;
 
 import retrofit2.Call;
@@ -56,7 +59,7 @@ public class MyCustomTask extends AsyncTask<String, String, String> {
     @Override
     protected void onPostExecute(String s) {
 //        Toast.makeText(context, s, Toast.LENGTH_SHORT).show();
-        ((GeokoderActivity) context).showSearchResults(yandexResponse);
+        ((GeocoderActivity) context).showSearchResults(yandexResponse);
 //        ((GeokoderActivity) context).startYandexNavi("55.492914 37.300647", s);
         super.onPostExecute(s);
     }

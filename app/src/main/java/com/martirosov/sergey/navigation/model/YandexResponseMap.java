@@ -1,4 +1,4 @@
-package com.martirosov.sergey.navigation;
+package com.martirosov.sergey.navigation.model;
 
 import retrofit2.Call;
 import retrofit2.http.GET;

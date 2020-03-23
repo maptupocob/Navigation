@@ -14,12 +14,15 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import com.martirosov.sergey.navigation.model.FeatureMember;
+import com.martirosov.sergey.navigation.model.YandexResponse;
+
 import java.util.ArrayList;
 import java.util.List;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-public class GeokoderActivity extends AppCompatActivity {
+public class GeocoderActivity extends AppCompatActivity {
     private YandexResponse yandexResponse;
     private ListView suggestResultView;
     private ArrayAdapter resultAdapter;
@@ -41,7 +44,7 @@ public class GeokoderActivity extends AppCompatActivity {
         suggestResultView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Toast.makeText(GeokoderActivity.this, featureMemberList.get(position).getGeoObject().getPos(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(GeocoderActivity.this, featureMemberList.get(position).getGeoObject().getPos(), Toast.LENGTH_SHORT).show();
                 startYandexNavi(currentPos, featureMemberList.get(position).getGeoObject().getPos());
             }
         });
@@ -63,7 +66,6 @@ public class GeokoderActivity extends AppCompatActivity {
             public void afterTextChanged(Editable s) {
                 if (s.length() > 3) {
                     getYandexResponse(s.toString());
-//                    startYandexMap(s.toString());
                 }
 
             }
@@ -74,16 +76,7 @@ public class GeokoderActivity extends AppCompatActivity {
         suggestResultView.setVisibility(View.INVISIBLE);
         MyCustomTask customTask = new MyCustomTask(yandexResponse, this);
         customTask.execute(s);
-//        String name = yandexResponse.getFeatureMember().get(0).getName();
-//        Toast.makeText(this, name, Toast.LENGTH_SHORT).show();
     }
-
-    public void startYandexMap(String s) {
-        Uri uri = Uri.parse("yandexmaps://maps.yandex.ru/?ll=" + s + "&z=12");
-        Intent intent = new Intent(Intent.ACTION_VIEW, uri);
-        startActivity(intent);
-    }
-
 
     public void startYandexNavi(String from, String to) {
         float latFrom = Float.parseFloat(from.split("\\s")[1]);
@@ -120,4 +113,6 @@ public class GeokoderActivity extends AppCompatActivity {
         resultAdapter.notifyDataSetChanged();
         suggestResultView.setVisibility(View.VISIBLE);
     }
+
+
 }

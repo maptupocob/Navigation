@@ -1,8 +1,8 @@
-package com.martirosov.sergey.navigation;
+package com.martirosov.sergey.navigation.model;
 
 import com.google.gson.annotations.SerializedName;
 
-class GeoObject {
+public class GeoObject {
     private MetaDataProperty metaDataProperty;
     private String name;
     private String description;

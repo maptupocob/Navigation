@@ -1,4 +1,4 @@
-package com.martirosov.sergey.navigation;
+package com.martirosov.sergey.navigation.model;
 
 import com.google.gson.annotations.SerializedName;
 
