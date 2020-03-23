@@ -61,7 +61,7 @@ public class GeokoderActivity extends AppCompatActivity {
 
             @Override
             public void afterTextChanged(Editable s) {
-                if (s.length() > 5) {
+                if (s.length() > 3) {
                     getYandexResponse(s.toString());
 //                    startYandexMap(s.toString());
                 }
@@ -84,17 +84,12 @@ public class GeokoderActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
-    public void startYandexMapRoute(String s) {
-        Uri uri = Uri.parse("yandexmaps://maps.yandex.ru/?rtext=55.492914,37.300647~" + s.split(",")[1] + "," + s.split(",")[0] + "&rtt=mt");
-        Intent intent = new Intent(Intent.ACTION_VIEW, uri);
-        startActivity(intent);
-    }
 
     public void startYandexNavi(String from, String to) {
         float latFrom = Float.parseFloat(from.split("\\s")[1]);
         float lonFrom = Float.parseFloat(from.split("\\s")[0]);
-        float latTo = Float.parseFloat(from.split("\\s")[1]);
-        float lonTo = Float.parseFloat(from.split("\\s")[0]);
+        float latTo = Float.parseFloat(to.split("\\s")[1]);
+        float lonTo = Float.parseFloat(to.split("\\s")[0]);
         // Создаем интент для построения маршрута
         Intent intent = new Intent("ru.yandex.yandexnavi.action.BUILD_ROUTE_ON_MAP");
         intent.setPackage("ru.yandex.yandexnavi");
