@@ -2,4 +2,5 @@
     <string name="app_name">Navigation</string>
     <string name="enter_address_hint">Enter address</string>
     <string name="no_current_coordinates">Не удалось определить текущие координаты</string>
+    <string name="app_will_not_work">Приложение работать не будет!</string>
 </resources>

@@ -29,9 +29,17 @@ public class GeoObject {
         }
     }
 
+    public String getFormattedAddress() {
+        return metaDataProperty.getFormattedAddress();
+    }
+
     private class MetaDataProperty {
         @SerializedName("GeocoderMetaData")
         private GeocoderMetaData geocoderMetaData;
+
+        public String getFormattedAddress() {
+            return geocoderMetaData.getText();
+        }
     }
 
     private class GeocoderMetaData {
@@ -40,6 +48,14 @@ public class GeoObject {
         private String precision;
         @SerializedName("Address")
         private Address address;
+
+        public String getText() {
+            return text;
+        }
+
+        public Address getAddress() {
+            return address;
+        }
     }
 }
 

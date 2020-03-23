@@ -40,12 +40,13 @@ public class GeocoderActivity extends AppCompatActivity {
     LocationManager locationManager;
     Context context;
     private String currentPos;
-    LocationListener locationListenerGPS = new LocationListener() {
+
+    LocationListener locationListener = new LocationListener() {
         @Override
         public void onLocationChanged(android.location.Location location) {
             double latitude = location.getLatitude();
             double longitude = location.getLongitude();
-            String msg = "New Latitude: " + latitude + "\nNew Longitude: " + longitude;
+            String msg = "Current Latitude: " + latitude + "\nCurrent Longitude: " + longitude;
             currentPos = longitude + " " + latitude;
             Toast.makeText(context, msg, Toast.LENGTH_LONG).show();
         }
@@ -65,12 +66,6 @@ public class GeocoderActivity extends AppCompatActivity {
 
         }
     };
-
-    private void getYandexResponse(String s) {
-        suggestResultView.setVisibility(View.INVISIBLE);
-        MyCustomTask customTask = new MyCustomTask(yandexResponse, this);
-        customTask.execute(s);
-    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -106,32 +101,26 @@ public class GeocoderActivity extends AppCompatActivity {
         suggestResultView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Toast.makeText(GeocoderActivity.this, featureMemberList.get(position).getGeoObject().getPos(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(context, featureMemberList.get(position).getGeoObject().getPos(), Toast.LENGTH_SHORT).show();
                 startYandexNavi(currentPos, featureMemberList.get(position).getGeoObject().getPos());
             }
         });
         suggestResultView.setAdapter(resultAdapter);
 
         locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+        if ((ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED)
+                && (ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED)) {
             ActivityCompat.requestPermissions(this,
-                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION},
                     MY_PERMISSIONS_REQUEST_LOCATION);
             return;
         }
         locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,
                 2000,
-                10, locationListenerGPS);
-    }
-
-    public void showSearchResults(YandexResponse yandexResponse) {
-        featureMemberList = yandexResponse.getFeatureMember();
-        suggestResult.clear();
-        for (int i = 0; i < featureMemberList.size(); i++) {
-            suggestResult.add(featureMemberList.get(i).getGeoObject().getName());
-        }
-        resultAdapter.notifyDataSetChanged();
-        suggestResultView.setVisibility(View.VISIBLE);
+                10, locationListener);
+        locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER,
+                2000,
+                10, locationListener);
     }
 
     public void startYandexNavi(String from, String to) {
@@ -163,20 +152,40 @@ public class GeocoderActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
+    private void getYandexResponse(String s) {
+        suggestResultView.setVisibility(View.INVISIBLE);
+        MyCustomTask customTask = new MyCustomTask(yandexResponse, this);
+        customTask.execute(s);
+    }
+
+    public void showSearchResults(YandexResponse yandexResponse) {
+        featureMemberList = yandexResponse.getFeatureMember();
+        suggestResult.clear();
+        for (int i = 0; i < featureMemberList.size(); i++) {
+            suggestResult.add(featureMemberList.get(i).getGeoObject().getFormattedAddress());
+        }
+        resultAdapter.notifyDataSetChanged();
+        suggestResultView.setVisibility(View.VISIBLE);
+    }
+
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == MY_PERMISSIONS_REQUEST_LOCATION) {
             if (grantResults.length > 0
                     && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                if ((ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED)
+                        && (ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED)) {
+                    locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER,
+                            2000,
+                            10, locationListener);
                     locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,
                             2000,
-                            10, locationListenerGPS);
+                            10, locationListener);
                 }
 
             } else {
-                Toast.makeText(context, "Приложение работать не будет!", Toast.LENGTH_SHORT).show();
+                Toast.makeText(context, R.string.app_will_not_work, Toast.LENGTH_SHORT).show();
             }
             return;
         }
@@ -188,7 +197,7 @@ public class GeocoderActivity extends AppCompatActivity {
         if (ContextCompat.checkSelfPermission(this,
                 Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED) {
-            locationManager.removeUpdates(locationListenerGPS);
+            locationManager.removeUpdates(locationListener);
         }
     }
 
@@ -198,9 +207,12 @@ public class GeocoderActivity extends AppCompatActivity {
         if (ContextCompat.checkSelfPermission(this,
                 Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED) {
+            locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER,
+                    2000,
+                    10, locationListener);
             locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,
                     2000,
-                    10, locationListenerGPS);
+                    10, locationListener);
         }
     }
 }

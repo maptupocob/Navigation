@@ -13,10 +13,12 @@ public class Address {
     @SerializedName("Components")
     private List<Component> components;
 
+    public String getFormatted() {
+        return formatted;
+    }
+
     private class Component{
         private String kind;
         private String name;
-    };
-
-
+    }
 }
