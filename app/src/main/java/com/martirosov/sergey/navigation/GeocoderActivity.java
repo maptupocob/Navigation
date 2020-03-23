@@ -1,8 +1,12 @@
 package com.martirosov.sergey.navigation;
 
+import android.Manifest;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.text.Editable;
@@ -20,37 +24,60 @@ import com.martirosov.sergey.navigation.model.YandexResponse;
 import java.util.ArrayList;
 import java.util.List;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
 public class GeocoderActivity extends AppCompatActivity {
+    public static final int MY_PERMISSIONS_REQUEST_LOCATION = 99;
+
     private YandexResponse yandexResponse;
     private ListView suggestResultView;
     private ArrayAdapter resultAdapter;
     private List<String> suggestResult;
     private List<FeatureMember> featureMemberList;
-    private String currentPos = "37.299656 55.493959";
+    LocationManager locationManager;
+    Context context;
+    private String currentPos;
+    LocationListener locationListenerGPS = new LocationListener() {
+        @Override
+        public void onLocationChanged(android.location.Location location) {
+            double latitude = location.getLatitude();
+            double longitude = location.getLongitude();
+            String msg = "New Latitude: " + latitude + "\nNew Longitude: " + longitude;
+            currentPos = longitude + " " + latitude;
+            Toast.makeText(context, msg, Toast.LENGTH_LONG).show();
+        }
+
+        @Override
+        public void onStatusChanged(String provider, int status, Bundle extras) {
+
+        }
+
+        @Override
+        public void onProviderEnabled(String provider) {
+
+        }
+
+        @Override
+        public void onProviderDisabled(String provider) {
+
+        }
+    };
+
+    private void getYandexResponse(String s) {
+        suggestResultView.setVisibility(View.INVISIBLE);
+        MyCustomTask customTask = new MyCustomTask(yandexResponse, this);
+        customTask.execute(s);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_geokoder);
+        context = this;
         EditText addressText = findViewById(R.id.enter_address);
-        suggestResultView = findViewById(R.id.suggest_result);
-        suggestResult = new ArrayList<>();
-        resultAdapter = new ArrayAdapter(this,
-                android.R.layout.simple_list_item_2,
-                android.R.id.text1,
-                suggestResult);
-        suggestResultView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Toast.makeText(GeocoderActivity.this, featureMemberList.get(position).getGeoObject().getPos(), Toast.LENGTH_SHORT).show();
-                startYandexNavi(currentPos, featureMemberList.get(position).getGeoObject().getPos());
-            }
-        });
-
-        suggestResultView.setAdapter(resultAdapter);
-
         addressText.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
@@ -70,38 +97,31 @@ public class GeocoderActivity extends AppCompatActivity {
 
             }
         });
-    }
+        suggestResultView = findViewById(R.id.suggest_result);
+        suggestResult = new ArrayList<>();
+        resultAdapter = new ArrayAdapter(this,
+                android.R.layout.simple_list_item_2,
+                android.R.id.text1,
+                suggestResult);
+        suggestResultView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                Toast.makeText(GeocoderActivity.this, featureMemberList.get(position).getGeoObject().getPos(), Toast.LENGTH_SHORT).show();
+                startYandexNavi(currentPos, featureMemberList.get(position).getGeoObject().getPos());
+            }
+        });
+        suggestResultView.setAdapter(resultAdapter);
 
-    private void getYandexResponse(String s) {
-        suggestResultView.setVisibility(View.INVISIBLE);
-        MyCustomTask customTask = new MyCustomTask(yandexResponse, this);
-        customTask.execute(s);
-    }
-
-    public void startYandexNavi(String from, String to) {
-        float latFrom = Float.parseFloat(from.split("\\s")[1]);
-        float lonFrom = Float.parseFloat(from.split("\\s")[0]);
-        float latTo = Float.parseFloat(to.split("\\s")[1]);
-        float lonTo = Float.parseFloat(to.split("\\s")[0]);
-        // Создаем интент для построения маршрута
-        Intent intent = new Intent("ru.yandex.yandexnavi.action.BUILD_ROUTE_ON_MAP");
-        intent.setPackage("ru.yandex.yandexnavi");
-
-        PackageManager pm = getPackageManager();
-        List<ResolveInfo> infos = pm.queryIntentActivities(intent, 0);
-
-        // Проверяем, установлен ли Яндекс.Навигатор
-        if (infos == null || infos.size() == 0) {
-            // Если нет - будем открывать страничку Навигатора в Google Play
-            intent = new Intent(Intent.ACTION_VIEW);
-            intent.setData(Uri.parse("market://details?id=ru.yandex.yandexnavi"));
-        } else {
-            intent.putExtra("lat_from", latFrom);
-            intent.putExtra("lon_from", lonFrom);
-            intent.putExtra("lat_to", latTo);
-            intent.putExtra("lon_to", lonTo);
+        locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                    MY_PERMISSIONS_REQUEST_LOCATION);
+            return;
         }
-        startActivity(intent);
+        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,
+                2000,
+                10, locationListenerGPS);
     }
 
     public void showSearchResults(YandexResponse yandexResponse) {
@@ -114,5 +134,73 @@ public class GeocoderActivity extends AppCompatActivity {
         suggestResultView.setVisibility(View.VISIBLE);
     }
 
+    public void startYandexNavi(String from, String to) {
+        if (from == null) {
+            Toast.makeText(context, R.string.no_current_coordinates, Toast.LENGTH_SHORT).show();
+            return;
+        }
+        float latFrom = Float.parseFloat(from.split("\\s")[1]);
+        float lonFrom = Float.parseFloat(from.split("\\s")[0]);
+        float latTo = Float.parseFloat(to.split("\\s")[1]);
+        float lonTo = Float.parseFloat(to.split("\\s")[0]);
 
+        Intent intent = new Intent("ru.yandex.yandexnavi.action.BUILD_ROUTE_ON_MAP");
+        intent.setPackage("ru.yandex.yandexnavi");
+
+        PackageManager pm = getPackageManager();
+        List<ResolveInfo> infos = pm.queryIntentActivities(intent, 0);
+
+        // Проверяем, установлен ли Яндекс.Навигатор
+        if (infos == null || infos.size() == 0) {
+            intent = new Intent(Intent.ACTION_VIEW);
+            intent.setData(Uri.parse("market://details?id=ru.yandex.yandexnavi"));
+        } else {
+            intent.putExtra("lat_from", latFrom);
+            intent.putExtra("lon_from", lonFrom);
+            intent.putExtra("lat_to", latTo);
+            intent.putExtra("lon_to", lonTo);
+        }
+        startActivity(intent);
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == MY_PERMISSIONS_REQUEST_LOCATION) {
+            if (grantResults.length > 0
+                    && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                    locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,
+                            2000,
+                            10, locationListenerGPS);
+                }
+
+            } else {
+                Toast.makeText(context, "Приложение работать не будет!", Toast.LENGTH_SHORT).show();
+            }
+            return;
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if (ContextCompat.checkSelfPermission(this,
+                Manifest.permission.ACCESS_FINE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED) {
+            locationManager.removeUpdates(locationListenerGPS);
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (ContextCompat.checkSelfPermission(this,
+                Manifest.permission.ACCESS_FINE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED) {
+            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,
+                    2000,
+                    10, locationListenerGPS);
+        }
+    }
 }

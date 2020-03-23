@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">Navigation</string>
     <string name="enter_address_hint">Enter address</string>
+    <string name="no_current_coordinates">Не удалось определить текущие координаты</string>
 </resources>
